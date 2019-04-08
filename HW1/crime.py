@@ -33,6 +33,17 @@ def get_crime_data(year, filename):
     csv_file.close()
 
 
+def process_crime_data():
+    '''
+    '''
+    get_crime_data(2017, "crimes_2017.csv")
+    get_crime_data(2018, "crimes_2018.csv")
+    df_2017 = pd.read_csv("crimes_2017.csv", delimiter='|')
+    df_2018 = pd.read_csv("crimes_2018.csv", delimiter='|')
+    df = pd.concat([df_2017, df_2018])
+    return df
+
+
 def get_tract_spatial_data(): 
      ''' 
      ''' 
@@ -71,17 +82,6 @@ def merge_crime_geodata():
     return merged_geodf
 
 
-def process_crime_data():
-    '''
-    '''
-    get_crime_data(2017, "crimes_2017.csv")
-    get_crime_data(2018, "crimes_2018.csv")
-    df_2017 = pd.read_csv("crimes_2017.csv", delimiter='|')
-    df_2018 = pd.read_csv("crimes_2018.csv", delimiter='|')
-    df = pd.concat([df_2017, df_2018])
-    return df
-
-
 def analyze_crime_data(crime_df):
     '''
     ''' 
@@ -115,14 +115,24 @@ def analyze_crime_data(crime_df):
 def get_census_data():
     '''
     '''
-    tables = ("B25010_001E,B19013_001E,B03002_012E,B03002_003E,"
-              "B03002_004E,B03002_005E,B03002_006E,B25013_002E,"
-              "B25013_007E,B25013_003E,B25013_008E")
+    tables = ("B25010_001E,B19013_001E,B03002_001E,B03002_018E,"
+              "B03002_003E,B03002_004E,B03002_005E,B03002_006E,"
+              "B23006_001E,B23006_002E")
+    table_names = ['Household Size', 
+                   'Median Household Income',
+                   'Total population',
+                   'Hispanic', 
+                   'White', 
+                   'Black', 
+                   'Native American',
+                   'Asian', 
+                   'Total age 25 to 64',
+                   'Total age 25 to 64 less than HS']
     col_dict = {}
-    for col in tables.split(","):
-        concept = censusdata.censustable('acs5',2017,col[:6])[col]['concept']
-        label = censusdata.censustable('acs5',2017,col[:6])[col]['label']
-        col_dict[col] = label + " " + concept
+    table_lst = tables.split(",")
+    
+    for i in range(len(table_lst)):
+        col_dict[table_lst[i]] = table_names[i] 
 
     census_api_key = '3fe9e22eeba4c4df8dec801a8308938e3de723bd'
     url = ("https://api.census.gov/data/2017/acs/acs5?"
@@ -134,7 +144,19 @@ def get_census_data():
     df = pd.DataFrame(data)
     df.columns = df.iloc[0]
     df = df.drop(df.index[0])
-    df = df.rename(index=str, columns=col_dict)
+    df = df.rename(index=str, columns=col_dict)   
+    for col in table_names:
+        df = df.astype({col:float})
+
+    df['% Hispanic'] = df['Hispanic'] / df['Total population']
+    df['% White'] = df['White'] / df['Total population']
+    df['% Black'] = df['Black'] / df['Total population']
+    df['% Native American'] = df['Native American'] / df['Total population']
+    df['% Asian'] = df['Asian'] / df['Total population']
+    df['% Age 25 to 64 less than HS'] = df[
+        'Total age 25 to 64 less than HS'] / df['Total age 25 to 64']
+    df = df[df['Household Size'] != '-666666666']
+    df = df[df['Median Household Income'] != '-666666666']
     return df
 
 
@@ -144,6 +166,13 @@ def merge_crime_census_data(crime_df, census_df):
     crime_df = merge_crime_geodata()
     census_df = get_census_data()
     final_df = crime_df.merge(census_df, how='left', left_on='tractce10', right_on='tract')
+    return final_df
+
+
+
+
+
+
 
 
 
