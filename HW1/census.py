@@ -6,7 +6,32 @@ Homework 1 - Diagnostic
 
 import requests
 import censusdata
+import geopandas as gpd
 import pandas as pd
+
+
+def get_tract_spatial_data(): 
+     ''' 
+     ''' 
+     client = Socrata("data.cityofchicago.org", None) 
+     results = client.get("bt9m-d2mf", limit=100000) 
+     results_df = pd.DataFrame.from_records(results) 
+     return results_df
+
+def get_polygon(row):
+    '''
+    '''
+    coordinates = row['the_geom']['coordinates'][0][0] 
+    polygon = Polygon(coordinates) 
+    return polygon
+
+
+def transform_tract_spatial_data():
+    '''
+    '''
+    df = get_tract_spatial_data()
+    df['geometry'] = df.apply(get_polygon, axis=1)
+    return df 
 
 
 def get_census_data():
