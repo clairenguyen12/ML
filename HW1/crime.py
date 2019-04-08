@@ -9,6 +9,9 @@ import pandas as pd
 from sodapy import Socrata
 import matplotlib.pyplot as plt
 import seaborn as sns
+from shapely.geometry import Polygon
+from shapely.geometry import Point
+import geopandas as gpd
 
 
 def get_crime_data(year, filename):
@@ -25,6 +28,44 @@ def get_crime_data(year, filename):
     for row in results:
         writer.writerow(row)
     csv_file.close()
+
+
+def get_tract_spatial_data(): 
+     ''' 
+     ''' 
+     client = Socrata("data.cityofchicago.org", None) 
+     results = client.get("74p9-q2aq", limit=100000) 
+     results_df = pd.DataFrame.from_records(results) 
+     return results_df
+
+
+def get_polygon(row):
+    '''
+    '''
+    coordinates = row['the_geom']['coordinates'][0][0] 
+    polygon = Polygon(coordinates) 
+    return polygon
+
+
+def get_point(row):
+    '''
+    '''
+    point = Point(row['longitude'],row['latitude'])
+    return point
+
+
+def merge_crime_geodata():
+    '''
+    '''
+    crime_df = analyze_crime_data()
+    crime_df = crime_df.dropna(subset=['longitude', 'latitude'])
+    crime_df['geometry'] = crime_df.apply(get_point, axis=1)
+    crime_geodf = gpd.GeoDataFrame(crime_df)
+    tract_df = get_tract_spatial_data()
+    tract_df['geometry'] = tract_df.apply(get_polygon, axis=1)
+    tract_geodf = gpd.GeoDataFrame(tract_df)
+    merged_geodf = gpd.sjoin(crime_geodf, tract_geodf, how="left", op='intersects')
+    return merged_geodf
 
 
 def analyze_crime_data():
@@ -60,6 +101,7 @@ def analyze_crime_data():
     plt.ylabel("Total incidents of crime")
     plt.show()
     #explore crime patter by ward
+    return df
 
 
 
