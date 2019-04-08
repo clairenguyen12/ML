@@ -155,16 +155,18 @@ def get_census_data():
     df['% Asian'] = df['Asian'] / df['Total population']
     df['% Age 25 to 64 less than HS'] = df[
         'Total age 25 to 64 less than HS'] / df['Total age 25 to 64']
-    df = df[df['Household Size'] != '-666666666']
-    df = df[df['Median Household Income'] != '-666666666']
+    df = df[df['Household Size'] != -666666666]
+    df = df[df['Median Household Income'] != -666666666]
     return df
+
+
+#crime_df = merge_crime_geodata()
+#census_df = get_census_data()
 
 
 def merge_crime_census_data(crime_df, census_df):
     '''
     '''
-    crime_df = merge_crime_geodata()
-    census_df = get_census_data()
     final_df = crime_df.merge(census_df, how='left', left_on='tractce10', right_on='tract')
     return final_df
 
