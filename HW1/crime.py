@@ -86,11 +86,13 @@ def analyze_crime_data(crime_df):
     '''
     ''' 
     #crime in 2017
-    df_2017['primary_type'].value_counts(normalize=True)
+    df_2017 = pd.read_csv("crimes_2017.csv", delimiter='|')
+    df_2018 = pd.read_csv("crimes_2018.csv", delimiter='|')
+    print(df_2017['primary_type'].value_counts(normalize=True))
     #crime in 2018
-    df_2018['primary_type'].value_counts(normalize=True)
+    print(df_2018['primary_type'].value_counts(normalize=True))
     #comparing total crimes by type and year using pivot table
-    table = pd.pivot_table(df,
+    table = pd.pivot_table(crime_df,
                            index=['primary_type'],
                            columns=['year','arrest'],
                            values='id',
@@ -99,17 +101,16 @@ def analyze_crime_data(crime_df):
                            fill_value=0) 
     print(table)
     #plot the change in incidents of crime by year
-    table_for_plot = pd.pivot_table(df, 
+    table_for_plot = pd.pivot_table(crime_df, 
                                     index='primary_type',
                                     columns='year',
                                     values='id',
                                     aggfunc='count',
                                     fill_value=0) 
     sns.set()
-    table_for_plot.plot(kind='bar')
+    table_for_plot.plot(kind='barh', fontsize=6, title='Crime type by year')
     plt.ylabel("Total incidents of crime")
     plt.show()
-    #explore crime patter by ward
 
 
 def get_census_data():
@@ -190,6 +191,8 @@ def analyze_aggregated_data(agg_df):
     plt.show()
     agg_df.plot.scatter(x='HOMICIDE',y='% Black')
     plt.show()
+
+
 
 
 
