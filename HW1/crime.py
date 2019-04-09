@@ -86,6 +86,7 @@ def merge_crime_geodata():
 def analyze_crime_data(crime_df):
     '''
     ''' 
+    #crime_df = process_crime_data()
     #crime in 2017
     df_2017 = pd.read_csv("crimes_2017.csv", delimiter='|')
     df_2018 = pd.read_csv("crimes_2018.csv", delimiter='|')
@@ -122,6 +123,30 @@ def analyze_crime_data(crime_df):
     over_time.set_index('date',inplace=True)
     over_time.plot()
     plt.show()
+    #exploring crime by month and type
+    ward43 = crime_df[crime_df['ward'] == 43]
+    ward43['date'] = pd.to_datetime(ward43['date'])
+    ward43['month_year'] = ward43['date'].dt.to_period('M')
+    crime_by_month = pd.pivot_table(ward43,  
+                                    index='primary_type', 
+                                    columns='month_year', 
+                                    values='id', 
+                                    aggfunc='count', 
+                                    fill_value=0)
+    crime_by_month.loc['TOTAL MONTHLY CRIMES']= crime_by_month.sum()
+    crime_by_month = crime_by_month.reset_index()
+    crime_by_month.columns.values[7] = 'Jul 2017'
+    crime_by_month.columns.values[19] = 'Jul 2018'
+    cols_to_keep = ['primary_type', 'Jul 2017', 'Jul 2018']
+    crime_july = crime_by_month[cols_to_keep]
+    some_crime_july = crime_july[(crime_july['primary_type']=='ROBBERY') | 
+                                 (crime_july['primary_type']=='BATTERY') |
+                                 (crime_july['primary_type']=='BURGLARY') |
+                                 (crime_july['primary_type']=='MOTOR VEHICLE THEFT') |
+                                 (crime_july['primary_type']=='TOTAL MONTHLY CRIMES')]
+    some_crime_july['% Increase'] = ((some_crime_july['Jul 2018'] - 
+                                     some_crime_july['Jul 2017']) / some_crime_july['Jul 2017']) * 100
+    print(some_crime_july)
 
 
 def get_census_data():
@@ -194,6 +219,7 @@ def get_aggregated_data(crime_df, census_df):
 def analyze_aggregated_data(agg_census):
     '''
     '''
+    #agg_census = get_aggregated_data(crime_df, census_df)
     #Batteries tend to happen in poor neighborhoods
     seaborn.scatterplot(x='BATTERY', y='Median Household Income', data=agg_census) 
     plt.show()
