@@ -206,6 +206,34 @@ def analyze_aggregated_data(agg_census):
     print(agg_census['SEX OFFENSE'].corr(agg_census['Household Size']))
 
 
+def analyze_prob_911_calls():
+    '''
+    '''
+    chi_crime = process_crime_data()
+    block_of_interest = chi_crime[chi_crime['block']=='021XX S MICHIGAN AVE']
+    print(block_of_interest['primary_type'].value_counts(normalize=True))
+    #Community area number for Garfield Park is 26(East) and 27(West)
+    theft = chi_crime[chi_crime['primary_type']=='THEFT']
+    total_thefts = len(theft)
+    total_thefts_garfield = chi_crime[(chi_crime['primary_type']=='THEFT') & 
+                                     (chi_crime['primary_area']==26) |
+                                     (chi_crime['primary_area']==27)]
+    total_thefts_uptown = chi_crime[(chi_crime['primary_type']=='THEFT') & 
+                                     (chi_crime['primary_area']==3)]
+    percent_uptown = total_thefts_uptown / total_thefts
+    percent_garfield = total_thefts_garfield / total_thefts
+    diff = percent_garfield - percent_uptown
+    print(percent_uptown)
+    print(percent_garfield)
+    print(diff)
+    #4.3
+    '''
+    P(Uptown given Battery) = P(U&B)/P(B) = 160/260 = 61.5%
+    P(Garfield given Battery) = P(G&B)/P(B) = 100/260 = 38.5%
+    difference = 61.5% - 38.5% = 23% 
+    23% less likely that it comes from Garfield Park than from Uptown
+
+
 
 
 
