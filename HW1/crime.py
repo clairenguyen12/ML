@@ -160,15 +160,25 @@ def get_census_data():
     return df
 
 
-#crime_df = merge_crime_geodata()
-#census_df = get_census_data()
-
-
 def merge_crime_census_data(crime_df, census_df):
     '''
     '''
+    crime_df = merge_crime_geodata()
+    census_df = get_census_data()
     final_df = crime_df.merge(census_df, how='left', left_on='tractce10', right_on='tract')
     return final_df
+
+
+def get_aggregated_data(crime_df, census_df):
+    '''
+    '''
+    df = pd.DataFrame(crime_df)
+    agg = pd.DataFramecrime(df.groupby(['tractce10','primary_type']).size().reset_index())
+    agg = agg.pivot(index='tractce10', columns='primary_type', values=0)
+    agg_census = agg.merge(census_df, how='left', left_on='tractce10', right_on='tract')
+    return agg_census
+
+
 
 
 
