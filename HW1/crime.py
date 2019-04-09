@@ -113,7 +113,15 @@ def analyze_crime_data(crime_df):
     plt.ylabel("Total incidents of crime")
     plt.show()
     #community areas with the most crimes in both 2017 and 2018:
-    print(crime_df['community_area'].value_counts(normalize=True).head(10)) 
+    print(crime_df['community_area'].value_counts(normalize=True).head(10))
+    #crime trends over time: crimes increase in the summer and decrease in the winter
+    #correlation between crime and weather
+    crime_df['date'] = pd.to_datetime(crime_df['date'])
+    over_time = crime_df.groupby(pd.Grouper(key='date',freq='MS')).size().reset_index()
+    over_time.columns = ['date', 'Total crimes']
+    over_time.set_index('date',inplace=True)
+    over_time.plot()
+    plt.show()
 
 
 def get_census_data():
@@ -167,8 +175,8 @@ def get_census_data():
 def merge_crime_census_data(crime_df, census_df):
     '''
     '''
-    crime_df = merge_crime_geodata()
-    census_df = get_census_data()
+    #crime_df = merge_crime_geodata()
+    #census_df = get_census_data()
     final_df = crime_df.merge(census_df, how='left', left_on='tractce10', right_on='tract')
     return final_df
 
@@ -232,6 +240,7 @@ def analyze_prob_911_calls():
     P(Garfield given Battery) = P(G&B)/P(B) = 100/260 = 38.5%
     difference = 61.5% - 38.5% = 23% 
     23% less likely that it comes from Garfield Park than from Uptown
+    '''
 
 
 
