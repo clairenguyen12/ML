@@ -15,6 +15,7 @@ import geopandas as gpd
 import rtree
 import requests
 import censusdata
+import seaborn
 
 
 def get_crime_data(year, filename):
@@ -111,6 +112,8 @@ def analyze_crime_data(crime_df):
     table_for_plot.plot(kind='barh', fontsize=6, title='Crime type by year')
     plt.ylabel("Total incidents of crime")
     plt.show()
+    #community areas with the most crimes in both 2017 and 2018:
+    print(crime_df['community_area'].value_counts(normalize=True).head(10)) 
 
 
 def get_census_data():
@@ -174,23 +177,37 @@ def get_aggregated_data(crime_df, census_df):
     '''
     '''
     df = pd.DataFrame(crime_df)
-    agg = pd.DataFrame(df.groupby(['tractce10','primary_type','year']).size().reset_index())
-    agg = agg.pivot(index='tractce10', columns='primary_type', values=0)
+    agg = crime_df.groupby(['tractce10','year','primary_type']).size().unstack().reset_index() 
+    agg = agg.fillna(0)
     agg_census = agg.merge(census_df, how='left', left_on='tractce10', right_on='tract')
     return agg_census
 
 
-def analyze_aggregated_data(agg_df):
+def analyze_aggregated_data(agg_census):
     '''
     '''
     #Batteries tend to happen in poor neighborhoods
-    agg_df.plot.scatter(x='BATTERY',y='Median Household Income')
+    seaborn.scatterplot(x='BATTERY', y='Median Household Income', data=agg_census) 
     plt.show()
     #Homicides - '% Black' & 'Median Household Income'
-    agg_df.plot.scatter(x='HOMICIDE',y='Median Household Income')
+    seaborn.scatterplot(x='HOMICIDE', y='Median Household Income', data=agg_census) 
     plt.show()
-    agg_df.plot.scatter(x='HOMICIDE',y='% Black')
+    seaborn.scatterplot(x='HOMICIDE', y='% Black', data=agg_census)
     plt.show()
+    #Crime over time
+    seaborn.scatterplot(x='BATTERY', y='Median Household Income', data=agg_census, hue='year')
+    plt.show()
+    seaborn.scatterplot(x='HOMICIDE', y='Median Household Income', data=agg_census, hue='year')
+    plt.show()
+    #"Deceptive Practice" and "Sex offense" - "Median Household Income"
+    print(agg_census['SEX OFFENSE'].corr(agg_census['Median Household Income']))
+    print(agg_census['DECEPTIVE PRACTICE'].corr(agg_census['Median Household Income']))  
+    print(agg_census['DECEPTIVE PRACTICE'].corr(agg_census['Household Size']))
+    print(agg_census['SEX OFFENSE'].corr(agg_census['Household Size']))
+
+
+
+
 
 
 
