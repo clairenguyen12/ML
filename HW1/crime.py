@@ -173,10 +173,25 @@ def get_aggregated_data(crime_df, census_df):
     '''
     '''
     df = pd.DataFrame(crime_df)
-    agg = pd.DataFramecrime(df.groupby(['tractce10','primary_type']).size().reset_index())
+    agg = pd.DataFrame(df.groupby(['tractce10','primary_type','year']).size().reset_index())
     agg = agg.pivot(index='tractce10', columns='primary_type', values=0)
     agg_census = agg.merge(census_df, how='left', left_on='tractce10', right_on='tract')
     return agg_census
+
+
+def analyze_aggregated_data(agg_df):
+    '''
+    '''
+    #Batteries tend to happen in poor neighborhoods
+    agg_df.plot.scatter(x='BATTERY',y='Median Household Income')
+    plt.show()
+    #Homicides - '% Black' & 'Median Household Income'
+    agg_df.plot.scatter(x='HOMICIDE',y='Median Household Income')
+    plt.show()
+    agg_df.plot.scatter(x='HOMICIDE',y='% Black')
+    plt.show()
+
+
 
 
 
