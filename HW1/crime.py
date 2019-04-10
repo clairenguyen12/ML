@@ -95,6 +95,11 @@ def analyze_crime_data():
     #crime in 2018
     print("Total crimes by type in 2018")
     print(df_2018['primary_type'].value_counts(normalize=True))
+    #total crime incidents by year
+    print("Total crimes in 2017 and 2018")
+    print(crime_df['year'].value_counts())
+    print("Percent change in crime in 2018 compared to 2017")
+    print((len(df_2018) - len(df_2017)) / len(df_2017))
     #plot the change in incidents of crime by year
     table_for_plot = pd.pivot_table(crime_df, 
                                     index='primary_type',
@@ -193,18 +198,20 @@ def get_census_data():
     return df
 
 
-def merge_crime_census_data(crime_df, census_df):
+def merge_crime_census_data():
     '''
     '''
-    #crime_df = merge_crime_geodata()
-    #census_df = get_census_data()
+    crime_df = merge_crime_geodata()
+    census_df = get_census_data()
     final_df = crime_df.merge(census_df, how='left', left_on='tractce10', right_on='tract')
     return final_df
 
 
-def get_aggregated_data(crime_df, census_df):
+def get_aggregated_data():
     '''
     '''
+    crime_df = merge_crime_geodata()
+    census_df = get_census_data()
     df = pd.DataFrame(crime_df)
     agg = crime_df.groupby(['tractce10','year','primary_type']).size().unstack().reset_index() 
     agg = agg.fillna(0)
@@ -212,10 +219,10 @@ def get_aggregated_data(crime_df, census_df):
     return agg_census
 
 
-def analyze_aggregated_data(agg_census):
+def analyze_aggregated_data():
     '''
     '''
-    #agg_census = get_aggregated_data(crime_df, census_df)
+    agg_census = get_aggregated_data(crime_df, census_df)
     #Batteries tend to happen in poor neighborhoods
     seaborn.scatterplot(x='BATTERY', y='Median Household Income', data=agg_census) 
     plt.show()
@@ -229,10 +236,23 @@ def analyze_aggregated_data(agg_census):
     plt.show()
     seaborn.scatterplot(x='HOMICIDE', y='Median Household Income', data=agg_census, hue='year')
     plt.show()
-    #"Deceptive Practice" and "Sex offense" - "Median Household Income"
+    #Checking correlation
+    print("Correlation between Theft and Median Household Income")
+    print(agg_census['THEFT'].corr(agg_census['Median Household Income']))
+    print("Correlation between Theft and % working age people without than high school degree")
+    print(agg_census['THEFT'].corr(agg_census['% Age 25 to 64 less than HS']))
+    
+    print("Correlation between Battery and Median Household Income")
+    print(agg_census['BATTERY'].corr(agg_census['Median Household Income']))
+
+    print("Correlation between Sex Offense and Median Household Income")
     print(agg_census['SEX OFFENSE'].corr(agg_census['Median Household Income']))
+    print("Correlation between Deceptive Practice and Median Household Income")
     print(agg_census['DECEPTIVE PRACTICE'].corr(agg_census['Median Household Income']))  
+    
+    print("Correlation between Sex Offense and Household Size")
     print(agg_census['DECEPTIVE PRACTICE'].corr(agg_census['Household Size']))
+    print("Correlation between Deceptive Practice and Household Size")
     print(agg_census['SEX OFFENSE'].corr(agg_census['Household Size']))
 
 
@@ -245,24 +265,22 @@ def analyze_prob_911_calls():
     #Community area number for Garfield Park is 26(East) and 27(West)
     theft = chi_crime[chi_crime['primary_type']=='THEFT']
     total_thefts = len(theft)
-    total_thefts_garfield = chi_crime[(chi_crime['primary_type']=='THEFT') & 
-                                     (chi_crime['primary_area']==26) |
-                                     (chi_crime['primary_area']==27)]
-    total_thefts_uptown = chi_crime[(chi_crime['primary_type']=='THEFT') & 
-                                     (chi_crime['primary_area']==3)]
-    percent_uptown = total_thefts_uptown / total_thefts
-    percent_garfield = total_thefts_garfield / total_thefts
+    w_garfield = chi_crime[(chi_crime['primary_type']=='THEFT') & 
+                                     (chi_crime['community_area']==26)]
+    e_garfield = chi_crime[(chi_crime['primary_type']=='THEFT') & 
+                                     (chi_crime['community_area']==27)]
+    uptown = chi_crime[(chi_crime['primary_type']=='THEFT') & 
+                                     (chi_crime['community_area']==3)]
+    percent_uptown = len(uptown) / total_thefts
+    percent_garfield = (len(w_garfield) + len(e_garfield)) / total_thefts
     diff = percent_garfield - percent_uptown
+    print("Given a call is about theft, probability that a call is from Uptown")
     print(percent_uptown)
+    print("Given a call is about theft, probability that a call is from Garfield")
     print(percent_garfield)
+    print("Probability difference")
     print(diff)
-    #4.3
-    '''
-    P(Uptown given Battery) = P(U&B)/P(B) = 160/260 = 61.5%
-    P(Garfield given Battery) = P(G&B)/P(B) = 100/260 = 38.5%
-    difference = 61.5% - 38.5% = 23% 
-    23% less likely that it comes from Garfield Park than from Uptown
-    '''
+
 
 
 
