@@ -83,25 +83,18 @@ def merge_crime_geodata():
     return merged_geodf
 
 
-def analyze_crime_data(crime_df):
+def analyze_crime_data():
     '''
     ''' 
-    #crime_df = process_crime_data()
+    crime_df = process_crime_data()
     #crime in 2017
     df_2017 = pd.read_csv("crimes_2017.csv", delimiter='|')
     df_2018 = pd.read_csv("crimes_2018.csv", delimiter='|')
+    print("Total crimes by type in 2017")
     print(df_2017['primary_type'].value_counts(normalize=True))
     #crime in 2018
+    print("Total crimes by type in 2018")
     print(df_2018['primary_type'].value_counts(normalize=True))
-    #comparing total crimes by type and year using pivot table
-    table = pd.pivot_table(crime_df,
-                           index=['primary_type'],
-                           columns=['year','arrest'],
-                           values='id',
-                           aggfunc='count',
-                           margins=True,
-                           fill_value=0) 
-    print(table)
     #plot the change in incidents of crime by year
     table_for_plot = pd.pivot_table(crime_df, 
                                     index='primary_type',
@@ -114,6 +107,8 @@ def analyze_crime_data(crime_df):
     plt.ylabel("Total incidents of crime")
     plt.show()
     #community areas with the most crimes in both 2017 and 2018:
+    print("Top 10 community areas with the" 
+          "most total crime reports in 2017 and 2018")
     print(crime_df['community_area'].value_counts(normalize=True).head(10))
     #crime trends over time: crimes increase in the summer and decrease in the winter
     #correlation between crime and weather
@@ -124,6 +119,7 @@ def analyze_crime_data(crime_df):
     over_time.plot()
     plt.show()
     #exploring crime by month and type
+    print("Testifying against Ward 43' alderman's statement")
     ward43 = crime_df[crime_df['ward'] == 43]
     ward43['date'] = pd.to_datetime(ward43['date'])
     ward43['month_year'] = ward43['date'].dt.to_period('M')
