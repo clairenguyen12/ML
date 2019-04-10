@@ -20,6 +20,10 @@ import seaborn
 
 def get_crime_data(year, filename):
     '''
+    Download data from Chicago Open Data Portal using the API
+    Inputs:
+    year: int
+    filename: string
     '''
     client = Socrata("data.cityofchicago.org", None)
     results = client.get("6zsd-86xi", 
@@ -36,6 +40,8 @@ def get_crime_data(year, filename):
 
 def process_crime_data():
     '''
+    Process crime data downloaded and return a dataframe
+    that contains all crime reports in year 2017 and 2018
     '''
     get_crime_data(2017, "crimes_2017.csv")
     get_crime_data(2018, "crimes_2018.csv")
@@ -47,6 +53,8 @@ def process_crime_data():
 
 def get_tract_spatial_data(): 
      ''' 
+     Download tract spatial data using the API from 
+     Chicago Open Data Portal
      ''' 
      client = Socrata("data.cityofchicago.org", None) 
      results = client.get("74p9-q2aq", limit=100000) 
@@ -56,6 +64,7 @@ def get_tract_spatial_data():
 
 def get_polygon(row):
     '''
+    Turn a list of coordinates into a polygon object
     '''
     coordinates = row['the_geom']['coordinates'][0][0] 
     polygon = Polygon(coordinates) 
@@ -64,6 +73,7 @@ def get_polygon(row):
 
 def get_point(row):
     '''
+    Turn a tuple of lon and lat into a point object
     '''
     point = Point(row['longitude'],row['latitude'])
     return point
@@ -71,6 +81,8 @@ def get_point(row):
 
 def merge_crime_geodata():
     '''
+    This function merges the crime dataframe and
+    the tract spatial data and returns a geo dataframe
     '''
     crime_df = process_crime_data()
     crime_df = crime_df.dropna(subset=['longitude', 'latitude'])
@@ -85,6 +97,8 @@ def merge_crime_geodata():
 
 def analyze_crime_data():
     '''
+    This function analyzes the crime dataframe that is
+    collected from the Chicago Open Data Portal
     ''' 
     crime_df = process_crime_data()
     #crime in 2017
@@ -152,6 +166,7 @@ def analyze_crime_data():
 
 def get_census_data():
     '''
+    This function downloads census data using an API
     '''
     tables = ("B25010_001E,B19013_001E,B03002_001E,B03002_018E,"
               "B03002_003E,B03002_004E,B03002_005E,B03002_006E,"
@@ -200,6 +215,8 @@ def get_census_data():
 
 def merge_crime_census_data():
     '''
+    This function merges the crime geodataframe and
+    the census data
     '''
     crime_df = merge_crime_geodata()
     census_df = get_census_data()
@@ -209,6 +226,9 @@ def merge_crime_census_data():
 
 def get_aggregated_data():
     '''
+    This function merges crime geodataframe and census data,
+    and produce an aggregated version of total crime by types
+    by tracts
     '''
     crime_df = merge_crime_geodata()
     census_df = get_census_data()
@@ -221,8 +241,10 @@ def get_aggregated_data():
 
 def analyze_aggregated_data():
     '''
+    This function analyzes the aggregated dataframe
+    that is returned from the get_aggregated_data()
     '''
-    agg_census = get_aggregated_data(crime_df, census_df)
+    agg_census = get_aggregated_data()
     #Batteries tend to happen in poor neighborhoods
     seaborn.scatterplot(x='BATTERY', y='Median Household Income', data=agg_census) 
     plt.show()
@@ -258,6 +280,7 @@ def analyze_aggregated_data():
 
 def analyze_prob_911_calls():
     '''
+    This function will be used to answer question 4 in hw1
     '''
     chi_crime = process_crime_data()
     block_of_interest = chi_crime[chi_crime['block']=='021XX S MICHIGAN AVE']
