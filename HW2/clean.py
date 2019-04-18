@@ -141,7 +141,7 @@ def evaluate_classifier(dec_tree, x_train, y_train, x_test, y_test, threshold):
                                                    dec_tree.max_depth,
                                                    dec_tree.criterion, 
                                                    test_acc))
-    return dec_tree
+    return test_acc
 
 
 def rank_features(dec_tree, x_train):
