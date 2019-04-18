@@ -29,14 +29,20 @@ def explore_data(df):
     '''
     '''
     print("Let's take a look at the first 10 lines of the dataframe!")
+    print()
     print(df.head(10))
+    print()
     print()
     print("Dataframe's shape: {}".format(df.shape))
     print()
+    print()
     print("Data types:")
+    print()
     print(df.dtypes)
     print()
+    print()
     print("Distribution of the variables in the dataframe:")
+    print()
     print(df.describe())
 
 
@@ -79,11 +85,11 @@ def pre_process(df, upcode, col_to_upcode=None):
           "observations for each column:")
     print(df.isnull().sum().sort_values(ascending=False))
     print()
-    null = df.columns[credit.isna().any()].tolist()
+    null = df.columns[df.isna().any()].tolist()
     print("List of columns that contain missing data:")
     print(null)
     for col in null_col_list:
-        df[col].fillna(credit[col].median(), inplace=True)
+        df[col].fillna(df[col].median(), inplace=True)
     if upcode:
         df.loc[df[col_to_upcode] > 1, [col_to_upcode]] = 1
     print()
