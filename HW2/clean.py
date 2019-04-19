@@ -9,10 +9,14 @@ import numpy as np
 import pandas as pd
 import sklearn.tree as tree
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.tree import export_graphviz
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score as accuracy
 import graphviz
 import os.path
+from sklearn.externals.six import StringIO 
+import pydotplus
+from IPython.display import Image
 
 
 def import_csv(csv_file):
@@ -78,35 +82,54 @@ def create_corr_heatmap(df):
     plt.show()
 
 
-def pre_process(df, upcode, col_to_upcode=None):
+def pre_process(df, col_to_upcode=None):
     '''
     '''
     print("Brief overview of the number of missing" 
           "observations for each column:")
+    print()
     print(df.isnull().sum().sort_values(ascending=False))
     print()
-    null = df.columns[df.isna().any()].tolist()
+    print()
+    null_col_list = df.columns[df.isna().any()].tolist()
+    print()
     print("List of columns that contain missing data:")
-    print(null)
+    print()
+    print(null_col_list)
+    print()
+    print()
     for col in null_col_list:
         df[col].fillna(df[col].median(), inplace=True)
-    if upcode:
+    if col_to_upcode:
         df.loc[df[col_to_upcode] > 1, [col_to_upcode]] = 1
-    print()
     print("Brief overview of the data distribution after pre-processing:")
-    df.describe()
+    print()
+    print(df.describe())
 
 
-def convert_to_categorical(df, col, num_bin, label_list):
+def convert_to_categorical_using_qcut(df, old_col, new_col, num_bin, label_list):
     '''
     '''
-    df[col] = pd.qcut(df[col], num_bin, labels=label_list)
+    df[new_col] = pd.qcut(df[old_col], 
+                          num_bin, 
+                          labels=label_list)
 
 
-def convert_to_binary(cols_to_transform, df):
+def convert_to_categorical_using_cut(df, old_col, new_col, bins, labels):
     '''
     '''
-    df = pd.get_dummies(df, columns = cols_to_transform)
+    df[new_col] = pd.cut(df[old_col],
+                         bins=bins,
+                         labels=labels,
+                         include_lowest=True,
+                         right=True)
+
+
+def convert_to_binary(df, cols_to_transform):
+    '''
+    '''
+    df = pd.get_dummies(df, columns=cols_to_transform)
+    return df
 
 
 def build_classifiers(selected_features, outcome_col, 
@@ -122,12 +145,12 @@ def build_classifiers(selected_features, outcome_col,
     return (x_train, x_test, y_train, y_test)
 
 
-def build_tree(max_depth, x_train, y_train, x_test, y_test):
+def build_tree(max_depth, x_train, y_train):
     '''
     '''
     dec_tree = DecisionTreeClassifier(max_depth=max_depth)
     dec_tree.fit(x_train, y_train)
-    return dec_tree    
+    return dec_tree
 
 
 def evaluate_classifier(dec_tree, x_train, y_train, x_test, y_test, threshold):
@@ -143,7 +166,7 @@ def evaluate_classifier(dec_tree, x_train, y_train, x_test, y_test, threshold):
                               for score in predicted_scores_test])
     test_acc = accuracy(predicted_test, y_test)
     print("With the chosen threshold {}, chosen max_depth {} and criterion {}"
-          "the accuracy of the model is {}".format(threshold, 
+          " the accuracy of the model is {}".format(threshold, 
                                                    dec_tree.max_depth,
                                                    dec_tree.criterion, 
                                                    test_acc))
@@ -153,17 +176,20 @@ def evaluate_classifier(dec_tree, x_train, y_train, x_test, y_test, threshold):
 def rank_features(dec_tree, x_train):
     '''
     '''
+    df = pd.DataFrame()
     for name, importance in zip(x_train.columns, dec_tree.feature_importances_):
-        print("{}: {:.4f}".format(name, importance))
+        rv = {'Feature': name, 'Importance Weight': importance}
+        df = df.append(rv, ignore_index=True)
+        df = df.sort_values(by='Importance Weight', ascending=False)
+    return df
 
 
-def evaluation_accuracy_by_max_depth(threshold, depth_list, 
+def evaluate_accuracy_by_max_depth(threshold, depth_list, 
                                      x_train, y_train, x_test, y_test):
     '''
     '''
-    threshold = .2
-    depths = [1, 3, 5, 7, 9, 20, 50, 100]
-    for d in depths:
+    calc_threshold = lambda x,y: 0 if x < y else 1
+    for d in depth_list:
         dec_tree = DecisionTreeClassifier(max_depth=d)
         dec_tree.fit(x_train, y_train)
         train_scores = dec_tree.predict_proba(x_train)[:,1]
@@ -174,10 +200,31 @@ def evaluation_accuracy_by_max_depth(threshold, depth_list,
         predicted_test = np.array([calc_threshold(score, threshold) 
                                    for score in test_scores])
         test_acc = accuracy(predicted_test, y_test) 
-        print("Depth: {} | Train acc: {:.2f} | Test acc: {:.2f}".format(d, train_acc, test_acc))
+        print("Depth: {} | Train acc: {:.2f} | Test acc: {:.2f}".format(
+            d, train_acc, test_acc))
 
 
-def visualize_dec_tree():
+def evaluate_accuracy_by_threshold(max_depth, threshold_list,
+                                   x_train, y_train, x_test, y_test):
+    '''
+    '''
+    calc_threshold = lambda x,y: 0 if x < y else 1
+    for threshold in threshold_list:
+        dec_tree = DecisionTreeClassifier(max_depth=max_depth)
+        dec_tree.fit(x_train, y_train)
+        train_scores = dec_tree.predict_proba(x_train)[:,1]
+        test_scores = dec_tree.predict_proba(x_test)[:,1]
+        predicted_train = np.array([calc_threshold(score, threshold) 
+                                    for score in train_scores])
+        train_acc = accuracy(predicted_train, y_train)
+        predicted_test = np.array([calc_threshold(score, threshold) 
+                                   for score in test_scores])
+        test_acc = accuracy(predicted_test, y_test) 
+        print("Threshold: {} | Train acc: {:.2f} | Test acc: {:.2f}".format(
+            threshold, train_acc, test_acc))
+
+
+def visualize_dec_tree(dec_tree):
     '''
     '''
     dot_data = StringIO()
@@ -186,18 +233,3 @@ def visualize_dec_tree():
                     special_characters=True)
     graph = pydotplus.graph_from_dot_data(dot_data.getvalue())  
     Image(graph.create_png())
-
-
-
-
-
-
-    
-
-
-
-
-
-
-
-
