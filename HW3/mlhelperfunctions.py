@@ -26,6 +26,7 @@ from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier, Gradi
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.dummy import DummyClassifier
 from sklearn.cross_validation import train_test_split
 from sklearn.grid_search import ParameterGrid
 from sklearn.metrics import *
@@ -144,20 +145,13 @@ def define_clfs_params(grid_size):
 # Evaluation functions
 # calculate precision, recall and auc metrics
 
-def generate_auc_score(y_true, scores):
+def baseline(X_train, X_test, y_train, y_test):
     '''
     '''
-    fpr, tpr, thresholds = roc_curve(true, scores)
-    roc_auc = auc(fpr, tpr)
-    return roc_auc
-
-
-def generate_binary_at_k(y_scores, k):
-    '''
-    '''
-    cutoff_index = int(len(y_scores) * (k / 100.0))
-    predictions_binary = [1 if x < cutoff_index else 0 for x in range(len(y_scores))]
-    return predictions_binary
+    clf = DummyClassifier(strategy='most_frequent', random_state=0)
+    clf.fit(X_train, y_train)
+    baseline = clf.score(X_test, y_test)
+    return baseline
 
 
 def precision_at_k(y_true, y_scores, k):
@@ -228,3 +222,12 @@ def joint_sort_descending(l1, l2):
     '''
     idx = np.argsort(l1)[::-1]
     return l1[idx], l2[idx]
+
+
+def generate_binary_at_k(y_scores, k):
+    '''
+    '''
+    cutoff_index = int(len(y_scores) * (k / 100.0))
+    predictions_binary = [1 if x < cutoff_index else 0 for x in range(len(y_scores))]
+    return predictions_binary
+
