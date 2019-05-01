@@ -42,6 +42,15 @@ def explore_data(df):
     print(df.describe())
 
 
+def create_hist(df, column_name, x_lab, y_lab, title):
+    '''
+    '''
+    df[column_name].hist(bins=50, grid=False, xlabelsize=12, ylabelsize=12)
+    plt.xlabel(x_lab, fontsize=15)
+    plt.ylabel(y_lab, fontsize=15)
+    plt.show()
+
+
 def create_boxplot(df, column_name, by_variable, x_lab, y_lab, title):
     '''
     This function will print a boxplot that shows the
@@ -171,3 +180,11 @@ def convert_to_binary(df, cols_to_transform):
     '''
     df = pd.get_dummies(df, columns=cols_to_transform)
     return df
+
+
+def convert_to_datetime(df, cols_to_transform):
+    '''
+    '''
+    for col in cols_to_transform:
+        df[col] = pd.to_datetime(df[col])
+
