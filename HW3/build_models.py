@@ -9,6 +9,7 @@ codes from the following Github repo:
 https://github.com/rayidghani/magicloops/blob/master/magicloop.py
 '''
 
+from __future__ import division
 import pandas as pd
 import numpy as np
 import os
@@ -17,7 +18,6 @@ import matplotlib.pyplot as plt
 import pylab as pl
 from datetime import timedelta
 from datetime import datetime
-from __future__ import division
 import random
 from scipy import optimize
 import time
@@ -76,10 +76,8 @@ def clf_loop(models_to_run, clfs, grid, test_size):
                     continue
     return results_df
 
-
+'''
 def temporal_validation():
-	'''
-	'''
 	start_time_date = datetime.strptime(start_time, '%Y-%m-%d')
 	end_time_date = datetime.strptime(end_time, '%Y-%m-%d')
 
@@ -90,10 +88,11 @@ for prediction_window in prediction_windows:
         train_end_time = test_start_time  - relativedelta(days=+1) # minus 1 day
         train_start_time = train_end_time - relativedelta(months=+prediction_window)
         while (train_start_time >= start_time_date ):
-            print train_start_time,train_end_time,test_start_time,test_end_time, prediction_window
+            print (train_start_time, train_end_time, test_start_time, test_end_time, prediction_window)
             train_start_time -= relativedelta(months=+prediction_window)
             # call function to get data
             train_set, test_set = extract_train_test_sets (train_start_time, train_end_time, test_start_time, test_end_time)
             # fit on train data
             # predict on test data
         test_end_time -= relativedelta(months=+update_window)
+'''
