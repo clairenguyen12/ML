@@ -25,6 +25,8 @@ import seaborn as sns
 import csv
 from sklearn.model_selection import ParameterGrid, train_test_split
 from sklearn.metrics import roc_auc_score 
+from datetime import date, datetime, timedelta
+from dateutil.relativedelta import relativedelta
 
 from mlhelperfunctions import *
 
@@ -66,10 +68,32 @@ def clf_loop(models_to_run, clfs, grid, test_size):
                                                        recall_at_k(y_test_sorted, y_pred_probs_sorted, 10.0),
                                                        recall_at_k(y_test_sorted, y_pred_probs_sorted, 20.0),
                                                        recall_at_k(y_test_sorted, y_pred_probs_sorted, 30.0),
-                                                       recall_at_k(y_test_sorted, y_pred_probs_sorted, 50.0)
+                                                       recall_at_k(y_test_sorted, y_pred_probs_sorted, 50.0),
                                                        roc_auc_score(y_test, y_pred_probs)
                                                        ]
                 except IndexError as e:
                     print('Error:',e)
                     continue
     return results_df
+
+
+def temporal_validation():
+	'''
+	'''
+	start_time_date = datetime.strptime(start_time, '%Y-%m-%d')
+	end_time_date = datetime.strptime(end_time, '%Y-%m-%d')
+
+for prediction_window in prediction_windows:
+    test_end_time = end_time_date
+    while (test_end_time >= start_time_date + 2 * relativedelta(months=+prediction_window)):
+        test_start_time = test_end_time - relativedelta(months=+prediction_window)
+        train_end_time = test_start_time  - relativedelta(days=+1) # minus 1 day
+        train_start_time = train_end_time - relativedelta(months=+prediction_window)
+        while (train_start_time >= start_time_date ):
+            print train_start_time,train_end_time,test_start_time,test_end_time, prediction_window
+            train_start_time -= relativedelta(months=+prediction_window)
+            # call function to get data
+            train_set, test_set = extract_train_test_sets (train_start_time, train_end_time, test_start_time, test_end_time)
+            # fit on train data
+            # predict on test data
+        test_end_time -= relativedelta(months=+update_window)
