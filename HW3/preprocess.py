@@ -8,13 +8,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 import pandas as pd
-import sklearn.tree as tree
-from sklearn.tree import DecisionTreeClassifier, export_graphviz
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score as accuracy
-from sklearn.externals.six import StringIO
-import pydotplus
-from IPython.display import Image
 
 
 def import_csv(csv_file):
