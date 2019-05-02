@@ -40,6 +40,7 @@ def clf_loop_cross_validation(models_to_run, clfs, grid, df, predictors, outcome
     '''
     rv = temporal_validation(df, date_col, prediction_windows, start_time, end_time)
     results_df =  pd.DataFrame(columns=('model_type', 'clf', 'parameters', 'split_date', 
+                                        'baseline',
                                         'p_at_1', 'p_at_2', 'p_at_5',
                                         'p_at_10', 'p_at_20', 'p_at_30', 'p_at_50',
                                         'recall_at_1', 'recall_at_2', 'recall_at_5',
@@ -72,6 +73,7 @@ def clf_loop_cross_validation(models_to_run, clfs, grid, df, predictors, outcome
                         target_index = int(0.05*len(y_pred_probs_sorted))
                         target_threshold = y_pred_probs_sorted[target_index]
                         row = [models_to_run[index], clf, p, split_date,
+                               precision_at_k(y_test_sorted, y_pred_probs_sorted, 100.0),
                                precision_at_k(y_test_sorted, y_pred_probs_sorted, 1.0),
                                precision_at_k(y_test_sorted, y_pred_probs_sorted, 2.0),
                                precision_at_k(y_test_sorted, y_pred_probs_sorted, 5.0),
