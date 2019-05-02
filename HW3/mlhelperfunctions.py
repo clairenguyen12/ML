@@ -49,7 +49,7 @@ def define_clfs_params(grid_size):
     clfs = {'RF': RandomForestClassifier(n_estimators=50, n_jobs=-1),
             'AB': AdaBoostClassifier(DecisionTreeClassifier(max_depth=1), algorithm="SAMME", n_estimators=200),
             'LR': LogisticRegression(penalty='l1', C=1e5),
-            'SVM': svm.linearSVC(),
+            'SVM': svm.SVC(kernel='linear', probability=True, random_state=0),
             'GB': GradientBoostingClassifier(learning_rate=0.05, subsample=0.5, max_depth=6, n_estimators=10),
             'DT': DecisionTreeClassifier(),
             'KNN': KNeighborsClassifier(n_neighbors=3) 
@@ -126,6 +126,30 @@ def define_clfs_params(grid_size):
             'weights': ['uniform'],
             'algorithm': ['auto']}
            }
+
+    small_grid = { 
+    'RF':{'n_estimators': [100, 10000], 
+          'max_depth': [5,50], 
+          'max_features': ['sqrt','log2'],
+          'min_samples_split': [2,10], 
+          'n_jobs':[-1]},
+    'AB': {'algorithm': ['SAMME', 'SAMME.R'], 
+           'n_estimators': [1,10,100]},
+    'LR': {'penalty': ['l1','l2'], 
+           'C': [0.001,0.1,1,10]},
+    'SVM' :{'C': [0.01,0.1,1,10]},
+    'GB': {'n_estimators': [100, 10000], 
+           'learning_rate' : [0.1,0.5],
+           'subsample' : [0.1,0.5,1.0], 
+           'max_depth': [5,20]},
+    'DT': {'criterion': ['gini', 'entropy'], 
+           'max_depth': [1,5,10,20], 
+           'max_features': [None,'sqrt','log2'],
+           'min_samples_split': [2,5,10]},
+    'KNN': {'n_neighbors': [1,5,50],
+            'weights': ['uniform','distance'],
+            'algorithm': ['auto','ball_tree','kd_tree']}
+           }
     
     if (grid_size == 'large'):
         return clfs, large_grid
@@ -133,6 +157,8 @@ def define_clfs_params(grid_size):
         return clfs, small_grid
     elif (grid_size == 'test'):
         return clfs, test_grid
+    elif (grid_size == 'mini'):
+        return clfs, mini_grid
     else:
         return 0, 0
 
