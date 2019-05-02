@@ -122,7 +122,11 @@ def pre_process(df, col_to_upcode=None):
     print(null_col_list)
     print('\n'*2)
     for col in null_col_list:
-        df[col].fillna(df[col].median(), inplace=True)
+        try:
+            df[col].fillna(df[col].median(), inplace=True)
+        except:
+            print("Can't fill missing values for non-numeric column {}".format(col))
+            continue
     if col_to_upcode:
         df.loc[df[col_to_upcode] > 1, [col_to_upcode]] = 1
     print("Brief overview of the data distribution after pre-processing:")
@@ -178,7 +182,7 @@ def convert_to_binary(df, cols_to_transform):
         - df (dataframe)
         - cols_to_transform (list)
     '''
-    df = pd.get_dummies(df, columns=cols_to_transform)
+    df = pd.get_dummies(df, dummy_na=True, columns=cols_to_transform)
     return df
 
 

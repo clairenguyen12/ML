@@ -19,16 +19,14 @@ import random
 from scipy import optimize
 import time
 import seaborn as sns
-from mlfunctions import *
 from sklearn.metrics import roc_curve, auc, classification_report, confusion_matrix
-from sklearn import preprocessing, cross_validation, svm, metrics, tree, decomposition, svm
+from sklearn import preprocessing, svm, metrics, tree, decomposition, svm
 from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier, GradientBoostingClassifier, AdaBoostClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.dummy import DummyClassifier
-from sklearn.cross_validation import train_test_split
-from sklearn.grid_search import ParameterGrid
+from sklearn.model_selection import ParameterGrid, train_test_split
 from sklearn.metrics import *
 from sklearn.preprocessing import StandardScaler
 import itertools
@@ -68,7 +66,7 @@ def define_clfs_params(grid_size):
     'LR': {'penalty': ['l1','l2'], 
            'C': [0.00001,0.0001,0.001,0.01,0.1,1,10]},
     'SVM': {'C': [0.00001,0.0001,0.001,0.01,0.1,1,10],
-            'kernel':['linear']}
+            'kernel':['linear']},
     'GB': {'n_estimators': [1,10,100,1000,10000], 
            'learning_rate' : [0.001,0.01,0.05,0.1,0.5],
            'subsample' : [0.1,0.5,1.0], 
