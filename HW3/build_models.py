@@ -44,6 +44,7 @@ def clf_loop_cross_validation(models_to_run, clfs, grid, df, predictors, outcome
                                         'p_at_10', 'p_at_20', 'p_at_30', 'p_at_50',
                                         'recall_at_1', 'recall_at_2', 'recall_at_5',
                                         'recall_at_10', 'recall_at_20', 'recall_at_30', 'recall_at_50',
+                                        'f1_at_5', 'f1_at_20', 'f1_at_50',
                                         'auc-roc'))
     for n in range(1, 2):
         for split_date, data in rv.items():
@@ -76,13 +77,17 @@ def clf_loop_cross_validation(models_to_run, clfs, grid, df, predictors, outcome
                                recall_at_k(y_test_sorted, y_pred_probs_sorted, 20.0),
                                recall_at_k(y_test_sorted, y_pred_probs_sorted, 30.0),
                                recall_at_k(y_test_sorted, y_pred_probs_sorted, 50.0),
-                               roc_auc_score(y_test, y_pred_probs)]
+                               f1_at_k(y_test_sorted, y_pred_probs_sorted, 5.0),
+                               f1_at_k(y_test_sorted, y_pred_probs_sorted, 20.0),
+                               f1_at_k(y_test_sorted, y_pred_probs_sorted, 50.0),
+                               roc_auc_score(y_test, y_pred_probs), 
+                               ]
                         results_df.loc[len(results_df)] = row
                         #print(row)
                     except IndexError as e:
                         print('Error:',e)
                         continue
-    return results_df  
+    return results_df 
 
 
 def normal_clf_loop(models_to_run, clfs, grid, X, y, test_size=0.2):

@@ -49,7 +49,7 @@ def define_clfs_params(grid_size):
     clfs = {'RF': RandomForestClassifier(n_estimators=50, n_jobs=-1),
             'AB': AdaBoostClassifier(DecisionTreeClassifier(max_depth=1), algorithm="SAMME", n_estimators=200),
             'LR': LogisticRegression(penalty='l1', C=1e5),
-            'SVM': svm.SVC(kernel='linear', probability=True, random_state=0),
+            'SVM': svm.linearSVC(),
             'GB': GradientBoostingClassifier(learning_rate=0.05, subsample=0.5, max_depth=6, n_estimators=10),
             'DT': DecisionTreeClassifier(),
             'KNN': KNeighborsClassifier(n_neighbors=3) 
@@ -65,8 +65,7 @@ def define_clfs_params(grid_size):
            'n_estimators': [1,10,100,1000,10000]},
     'LR': {'penalty': ['l1','l2'], 
            'C': [0.00001,0.0001,0.001,0.01,0.1,1,10]},
-    'SVM': {'C': [0.00001,0.0001,0.001,0.01,0.1,1,10],
-            'kernel':['linear']},
+    'SVM': {'C': [0.00001,0.0001,0.001,0.01,0.1,1,10]},
     'GB': {'n_estimators': [1,10,100,1000,10000], 
            'learning_rate' : [0.001,0.01,0.05,0.1,0.5],
            'subsample' : [0.1,0.5,1.0], 
@@ -90,8 +89,7 @@ def define_clfs_params(grid_size):
            'n_estimators': [1,10,100,1000,10000]},
     'LR': {'penalty': ['l1','l2'], 
            'C': [0.00001,0.001,0.1,1,10]},
-    'SVM' :{'C': [0.00001,0.0001,0.001,0.01,0.1,1,10],
-            'kernel':['linear']},
+    'SVM' :{'C': [0.00001,0.0001,0.001,0.01,0.1,1,10]},
     'GB': {'n_estimators': [100, 10000], 
            'learning_rate' : [0.001,0.1,0.5],
            'subsample' : [0.1,0.5,1.0], 
@@ -115,8 +113,7 @@ def define_clfs_params(grid_size):
            'n_estimators': [1]},
     'LR': {'penalty': ['l1'], 
            'C': [0.01]},
-    'SVM': {'C' :[0.01],
-            'kernel':['linear']},
+    'SVM': {'C' :[0.01]},
     'GB': {'n_estimators': [1], 
            'learning_rate' : [0.1],
            'subsample' : [0.5], 
@@ -175,8 +172,8 @@ def f1_at_k(y_true, y_scores, k):
     '''
     y_scores_sorted, y_true_sorted = joint_sort_descending(np.array(y_scores), np.array(y_true))
     preds_at_k = generate_binary_at_k(y_scores_sorted, k)
-    f1_score = f1_score(y_true_sorted, preds_at_k)
-    return f1_score
+    f1 = f1_score(y_true_sorted, preds_at_k)
+    return f1
 
 
 def plot_precision_recall_n(y_true, y_prob, model_name):
