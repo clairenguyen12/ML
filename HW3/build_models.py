@@ -34,7 +34,7 @@ from mlhelperfunctions import *
 RANDOM_STATE = 100
 
 
-def clf_loop_cross_validation(models_to_run, clfs, grid, clean_df, predictors, outcome,
+def clf_loop_cross_validation(models_to_run, clfs, grid, df, predictors, outcome,
                               date_col, prediction_windows, start_time, end_time, test_size=0.2):
     '''
     '''
@@ -131,7 +131,7 @@ def normal_clf_loop(models_to_run, clfs, grid, X, y, test_size=0.2):
     return results_df
 
 
-def temporal_validation(clean_df, date_col, prediction_windows, start_time, end_time):
+def temporal_validation(df, date_col, prediction_windows, start_time, end_time):
     '''
     Create a dictionary that maps a key that is the validation date with a list
     of train set and test set that correspond to that validation date.
