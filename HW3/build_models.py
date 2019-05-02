@@ -100,6 +100,8 @@ def clf_loop_cross_validation(models_to_run, clfs, grid, df, predictors, outcome
                         results_df.loc[len(results_df)] = row
                         i +=1
                         print("Added row {}".format(i))
+                    #Unmute this line when we want to produce precision recall curves
+                    #plot_precision_recall_n(y_test,y_pred_probs,clf)
                     except IndexError as e:
                         print('Error:',e)
                         continue
