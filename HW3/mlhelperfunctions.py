@@ -113,7 +113,7 @@ def define_clfs_params(grid_size):
            'n_estimators': [1]},
     'LR': {'penalty': ['l1'], 
            'C': [0.01]},
-    'SVM': {'C' :[0.01]},
+    'SVM': {'C' :[0.01], kernel='linear'},
     'GB': {'n_estimators': [1], 
            'learning_rate' : [0.1],
            'subsample' : [0.5], 
@@ -127,7 +127,7 @@ def define_clfs_params(grid_size):
             'algorithm': ['auto']}
            }
 
-    small_grid = { 
+    mini_grid = { 
     'RF':{'n_estimators': [100, 10000], 
           'max_depth': [5,50], 
           'max_features': ['sqrt','log2'],
@@ -137,7 +137,8 @@ def define_clfs_params(grid_size):
            'n_estimators': [1,10,100]},
     'LR': {'penalty': ['l1','l2'], 
            'C': [0.001,0.1,1,10]},
-    'SVM' :{'C': [0.01,0.1,1,10]},
+    'SVM' :{'C': [0.01,0.1,1,10],
+            kernel='linear'},
     'GB': {'n_estimators': [100, 10000], 
            'learning_rate' : [0.1,0.5],
            'subsample' : [0.1,0.5,1.0], 
