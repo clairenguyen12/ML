@@ -46,6 +46,7 @@ def clf_loop_cross_validation(models_to_run, clfs, grid, df, predictors, outcome
                                         'recall_at_10', 'recall_at_20', 'recall_at_30', 'recall_at_50',
                                         'f1_at_5', 'f1_at_20', 'f1_at_50',
                                         'auc-roc'))
+    i = 0
     for n in range(1, 2):
         for split_date, data in rv.items():
             train_set = data[0]
@@ -88,7 +89,8 @@ def clf_loop_cross_validation(models_to_run, clfs, grid, df, predictors, outcome
                                roc_auc_score(y_test, y_pred_probs), 
                                ]
                         results_df.loc[len(results_df)] = row
-                        #print(row)
+                        i +=1
+                        print("Added row {}".format(i))
                     except IndexError as e:
                         print('Error:',e)
                         continue
