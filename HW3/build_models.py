@@ -55,12 +55,17 @@ def clf_loop_cross_validation(models_to_run, clfs, grid, df, predictors, outcome
             y_train = train_set[outcome]
             y_test = test_set[outcome]
             for index, clf in enumerate([clfs[x] for x in models_to_run]):
-                print(models_to_run[index])
+                model_name = models_to_run[index]
+                print(model_name)
                 parameter_values = grid[models_to_run[index]]
                 for p in ParameterGrid(parameter_values):
                     try:
                         clf.set_params(**p)
-                        y_pred_probs = clf.fit(X_train, y_train).predict_proba(X_test)[:,1]
+                        clf.fit(X_train, y_train)
+                        if model_name == 'SVM':
+                            y_pred_probs = clf.decision_function(X_test)
+                        else:
+                            y_pred_probs = clf.predict_proba(X_test)[:,1]                        
                         y_pred_probs_sorted, y_test_sorted = zip(*sorted(zip(y_pred_probs, y_test), reverse=True))
                         row = [models_to_run[index], clf, p, split_date,
                                precision_at_k(y_test_sorted, y_pred_probs_sorted, 1.0),
