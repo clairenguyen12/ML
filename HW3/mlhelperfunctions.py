@@ -49,7 +49,7 @@ def define_clfs_params(grid_size):
     clfs = {'RF': RandomForestClassifier(n_estimators=50, n_jobs=-1),
             'AB': AdaBoostClassifier(DecisionTreeClassifier(max_depth=1), algorithm="SAMME", n_estimators=200),
             'LR': LogisticRegression(penalty='l1', C=1e5),
-            'SVM': svm.SVC(kernel='linear', probability=True, random_state=0),
+            'SVM': svm.LinearSVC(),
             'GB': GradientBoostingClassifier(learning_rate=0.05, subsample=0.5, max_depth=6, n_estimators=10),
             'DT': DecisionTreeClassifier(),
             'KNN': KNeighborsClassifier(n_neighbors=3) 
@@ -89,8 +89,7 @@ def define_clfs_params(grid_size):
            'n_estimators': [1,10,100,1000,10000]},
     'LR': {'penalty': ['l1','l2'], 
            'C': [0.00001,0.001,0.1,1,10]},
-    'SVM' :{'C': [0.00001,0.0001,0.001,0.01,0.1,1,10],
-            'kernel': 'linear'},
+    'SVM' :{'C': [0.00001,0.0001,0.001,0.01,0.1,1,10]},
     'GB': {'n_estimators': [100, 10000], 
            'learning_rate' : [0.001,0.1,0.5],
            'subsample' : [0.1,0.5,1.0], 
@@ -114,7 +113,7 @@ def define_clfs_params(grid_size):
            'n_estimators': [1]},
     'LR': {'penalty': ['l1'], 
            'C': [0.01]},
-    'SVM': {'C' :[0.01], 'kernel': 'linear'},
+    'SVM': {'C' :[0.01]},
     'GB': {'n_estimators': [1], 
            'learning_rate' : [0.1],
            'subsample' : [0.5], 
@@ -138,8 +137,8 @@ def define_clfs_params(grid_size):
            'n_estimators': [1,10,100]},
     'LR': {'penalty': ['l1','l2'], 
            'C': [0.001,0.1,1,10]},
-    'SVM' :{'C': [0.01,0.1,1,10],
-            'kernel': 'linear'},
+    'SVM' :{'C': [0.0001,0.1,1],
+            'kernel': ['linear']},
     'GB': {'n_estimators': [100, 10000], 
            'learning_rate' : [0.1,0.5],
            'subsample' : [0.1,0.5,1.0], 
@@ -148,9 +147,9 @@ def define_clfs_params(grid_size):
            'max_depth': [1,5,10,20], 
            'max_features': [None,'sqrt','log2'],
            'min_samples_split': [2,5,10]},
-    'KNN': {'n_neighbors': [1,5,50],
+    'KNN': {'n_neighbors': [5,50],
             'weights': ['uniform','distance'],
-            'algorithm': ['auto','ball_tree','kd_tree']}
+            'algorithm': ['auto']}
            }
     
     if (grid_size == 'large'):

@@ -104,12 +104,17 @@ def normal_clf_loop(models_to_run, clfs, grid, X, y, test_size=0.2):
     for n in range(1, 2):
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=RANDOM_STATE)
         for index, clf in enumerate([clfs[x] for x in models_to_run]):
-            print(models_to_run[index])
+            model_name = models_to_run[index]
+            print(model_name)
             parameter_values = grid[models_to_run[index]]
             for p in ParameterGrid(parameter_values):
                 try:
                     clf.set_params(**p)
-                    y_pred_probs = clf.fit(X_train, y_train).predict_proba(X_test)[:,1]
+                    clf.fit(X_train, y_train)
+                    if model_name == 'SVM':
+                        y_pred_probs = clf.decision_function(X_test)
+                    else:
+                        y_pred_probs = clf.predict_proba(X_test)[:,1]
                     y_pred_probs_sorted, y_test_sorted = zip(*sorted(zip(y_pred_probs, y_test), reverse=True))
                     row = [models_to_run[index], clf, p,
                            baseline(X_train, X_test, y_train, y_test),
