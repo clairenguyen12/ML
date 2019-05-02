@@ -45,7 +45,8 @@ def clf_loop_cross_validation(models_to_run, clfs, grid, df, predictors, outcome
                                         'recall_at_1', 'recall_at_2', 'recall_at_5',
                                         'recall_at_10', 'recall_at_20', 'recall_at_30', 'recall_at_50',
                                         'f1_at_5', 'f1_at_20', 'f1_at_50',
-                                        'auc-roc'))
+                                        'auc-roc', 'target_threshold_top_5_percent', 
+                                        'precision_at_target', 'recall_at_target', 'f1_at_target'))
     i = 0
     for n in range(1, 2):
         for split_date, data in rv.items():
@@ -68,6 +69,8 @@ def clf_loop_cross_validation(models_to_run, clfs, grid, df, predictors, outcome
                         else:
                             y_pred_probs = clf.predict_proba(X_test)[:,1]                        
                         y_pred_probs_sorted, y_test_sorted = zip(*sorted(zip(y_pred_probs, y_test), reverse=True))
+                        target_index = int(0.05*len(y_pred_probs_sorted))
+                        target_threshold = y_pred_probs_sorted[target_index]
                         row = [models_to_run[index], clf, p, split_date,
                                precision_at_k(y_test_sorted, y_pred_probs_sorted, 1.0),
                                precision_at_k(y_test_sorted, y_pred_probs_sorted, 2.0),
@@ -86,7 +89,11 @@ def clf_loop_cross_validation(models_to_run, clfs, grid, df, predictors, outcome
                                f1_at_k(y_test_sorted, y_pred_probs_sorted, 5.0),
                                f1_at_k(y_test_sorted, y_pred_probs_sorted, 20.0),
                                f1_at_k(y_test_sorted, y_pred_probs_sorted, 50.0),
-                               roc_auc_score(y_test, y_pred_probs), 
+                               roc_auc_score(y_test, y_pred_probs),
+                               target_threshold,
+                               precision_at_k(y_test_sorted, y_pred_probs_sorted, target_threshold),
+                               recall_at_k(y_test_sorted, y_pred_probs_sorted, target_threshold),
+                               f1_at_k(y_test_sorted, y_pred_probs_sorted, target_threshold) 
                                ]
                         results_df.loc[len(results_df)] = row
                         i +=1
