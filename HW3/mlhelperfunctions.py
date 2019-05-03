@@ -21,7 +21,7 @@ import time
 import seaborn as sns
 from sklearn.metrics import roc_curve, auc, classification_report, confusion_matrix
 from sklearn import preprocessing, svm, metrics, tree, decomposition, svm
-from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier, GradientBoostingClassifier, AdaBoostClassifier
+from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier, GradientBoostingClassifier, BaggingClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
@@ -47,7 +47,7 @@ def define_clfs_params(grid_size):
     '''
 
     clfs = {'RF': RandomForestClassifier(n_estimators=50, n_jobs=-1),
-            'AB': AdaBoostClassifier(DecisionTreeClassifier(max_depth=1), algorithm="SAMME", n_estimators=200),
+            'B': BaggingClassifier(),
             'LR': LogisticRegression(penalty='l1', C=1e5),
             'SVM': svm.LinearSVC(),
             'GB': GradientBoostingClassifier(learning_rate=0.05, subsample=0.5, max_depth=6, n_estimators=10),
@@ -61,8 +61,7 @@ def define_clfs_params(grid_size):
            'max_features': ['sqrt','log2'],
            'min_samples_split': [2,5,10], 
            'n_jobs': [-1]},
-    'AB': {'algorithm': ['SAMME', 'SAMME.R'], 
-           'n_estimators': [1,10,100,1000,10000]},
+    'B': {'n_estimators': [1,10,100,1000,10000]},
     'LR': {'penalty': ['l1','l2'], 
            'C': [0.00001,0.0001,0.001,0.01,0.1,1,10]},
     'SVM': {'C': [0.00001,0.0001,0.001,0.01,0.1,1,10]},
@@ -85,8 +84,7 @@ def define_clfs_params(grid_size):
           'max_features': ['sqrt','log2'],
           'min_samples_split': [2,10], 
           'n_jobs':[-1]},
-    'AB': {'algorithm': ['SAMME', 'SAMME.R'], 
-           'n_estimators': [1,10,100,1000,10000]},
+    'B': {'n_estimators': [1,10,100,1000,10000]},
     'LR': {'penalty': ['l1','l2'], 
            'C': [0.00001,0.001,0.1,1,10]},
     'SVM' :{'C': [0.00001,0.0001,0.001,0.01,0.1,1,10]},
@@ -109,8 +107,7 @@ def define_clfs_params(grid_size):
            'max_features': ['sqrt'],
            'min_samples_split': [10], 
            'n_jobs': [-1]},
-    'AB': {'algorithm': ['SAMME'], 
-           'n_estimators': [1]},
+    'B': {'n_estimators': [1]},
     'LR': {'penalty': ['l1'], 
            'C': [0.01]},
     'SVM': {'C': [0.01]},
@@ -133,8 +130,7 @@ def define_clfs_params(grid_size):
           'max_features': ['sqrt'],
           'min_samples_split': [2, 10], 
           'n_jobs':[-1]},
-    'AB': {'algorithm': ['SAMME', 'SAMME.R'], 
-           'n_estimators': [1, 10, 100]},
+    'B': {'n_estimators': [1, 10, 100]},
     'LR': {'penalty': ['l1','l2'], 
            'C': [0.001, 0.1, 1, 10]},
     'SVM' :{'C': [0.0001, 0.01, 0.1, 1, 10]},
@@ -169,10 +165,7 @@ def define_clfs_params(grid_size):
 def baseline(X_train, X_test, y_train, y_test):
     '''
     '''
-    clf = DummyClassifier(strategy='most_frequent', random_state=0)
-    clf.fit(X_train, y_train)
-    baseline = clf.score(X_test, y_test)
-    return baseline
+
 
 
 def precision_at_k(y_true, y_scores, k):
