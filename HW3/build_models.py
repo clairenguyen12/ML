@@ -34,11 +34,84 @@ from mlhelperfunctions import *
 RANDOM_STATE = 100
 
 
-def clf_loop_cross_validation(models_to_run, clfs, grid, df, predictors, outcome,
-                              date_col, prediction_windows, start_time, end_time, test_size=0.2):
+def find_nuls(df):
+    '''
+    This function finds all the null columns in the dataframe
+    and return a list of such columns
+    '''
+    print(df.isnull().sum().sort_values(ascending=False))
+    null_col_list = df.columns[df.isna().any()].tolist()
+    return null_col_list
+
+
+def fill_null_cols(df, null_col_list):
     '''
     '''
-    rv = temporal_validation(df, date_col, prediction_windows, start_time, end_time)
+    for col in null_col_list:
+        try:
+            df[col].fillna(df[col].median(), inplace=True)
+        except:
+            print("Can't fill missing values for non-numeric column {}".format(col))
+            continue
+
+
+def discretize_cols(df, old_col, num_bins=3, labels=False):
+    '''
+    Inputs:
+        - dataframe (pandas dataframe)
+        - feature (string): label of column to discretize
+        - num_bins (int): number of bins to discretize into
+        - labels
+    Returns a pandas dataframe
+    '''
+    new_col = old_col + '_group'
+    df[new_col] = pd.cut(df[old_col], 
+                         bins=num_bins, 
+                         labels=labels, 
+                         right=True, 
+                         include_lowest=True)
+    return df
+
+
+def convert_to_binary(df, cols_to_transform):
+    '''
+    This function converts a categorical variable into binary
+
+    Inputs:
+        - df (dataframe)
+        - cols_to_transform (list)
+    '''
+    df = pd.get_dummies(df, dummy_na=True, columns=cols_to_transform)
+    return df
+
+
+def convert_to_datetime(df, cols_to_transform):
+    '''
+    '''
+    for col in cols_to_transform:
+        df[col] = pd.to_datetime(df[col])
+
+
+def process_train_data(rv, cols_to_discretize, num_bins, labels, cols_to_binary):
+    '''
+    '''
+    processed_data = []
+    processed_rv = {}
+    for split_date, data in rv.items():
+        for df in data:
+            fill_null_cols(df, find_nuls(df))
+            for col in cols_to_discretize:
+                processed_df = discretize_cols(df, col, num_bins, labels)
+            processed_df = convert_to_binary(processed_df, cols_to_binary)
+            processed_data.append(processed_df)
+        processed_rv[split_date] = processed_data
+    return processed_rv
+
+
+def clf_loop_cross_validation(models_to_run, clfs, grid, processed_rv, 
+                              predictors, outcome, test_size=0.2):
+    '''
+    '''
     results_df =  pd.DataFrame(columns=('model_type', 'clf', 'parameters', 'split_date', 
                                         'baseline',
                                         'p_at_1', 'p_at_2', 'p_at_5',
@@ -50,7 +123,7 @@ def clf_loop_cross_validation(models_to_run, clfs, grid, df, predictors, outcome
                                         'precision_at_target', 'recall_at_target', 'f1_at_target'))
     i = 0
     for n in range(1, 2):
-        for split_date, data in rv.items():
+        for split_date, data in processed_rv.items():
             train_set = data[0]
             test_set = data[1]
             X_train = train_set[predictors]
@@ -100,66 +173,15 @@ def clf_loop_cross_validation(models_to_run, clfs, grid, df, predictors, outcome
                         results_df.loc[len(results_df)] = row
                         i +=1
                         print("Added row {}".format(i))
-                    #Unmute this line when we want to produce precision recall curves
-                    #plot_precision_recall_n(y_test,y_pred_probs,clf)
+                        #Plot the precision recall curves
+                        plot_precision_recall_n(y_test, y_pred_probs, clf)
                     except IndexError as e:
                         print('Error:',e)
                         continue
-    return results_df 
-
-
-def normal_clf_loop(models_to_run, clfs, grid, X, y, test_size=0.2):
-    '''
-    Runs the loop using models_to_run, clfs, gridm and the data
-    Unless test_size is specified, default value 0.2 will be used
-    '''
-    results_df =  pd.DataFrame(columns=('model_type', 'clf', 'parameters', 'baseline', 
-                                        'p_at_1', 'p_at_2', 'p_at_5', 
-                                        'p_at_10', 'p_at_20', 'p_at_30', 'p_at_50',
-                                        'recall_at_1', 'recall_at_2', 'recall_at_5',
-                                        'recall_at_10', 'recall_at_20', 'recall_at_30', 'recall_at_50',
-                                        'auc-roc'))
-    for n in range(1, 2):
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=RANDOM_STATE)
-        for index, clf in enumerate([clfs[x] for x in models_to_run]):
-            model_name = models_to_run[index]
-            print(model_name)
-            parameter_values = grid[models_to_run[index]]
-            for p in ParameterGrid(parameter_values):
-                try:
-                    clf.set_params(**p)
-                    clf.fit(X_train, y_train)
-                    if model_name == 'SVM':
-                        y_pred_probs = clf.decision_function(X_test)
-                    else:
-                        y_pred_probs = clf.predict_proba(X_test)[:,1]
-                    y_pred_probs_sorted, y_test_sorted = zip(*sorted(zip(y_pred_probs, y_test), reverse=True))
-                    row = [models_to_run[index], clf, p,
-                           baseline(X_train, X_test, y_train, y_test),
-                           precision_at_k(y_test_sorted, y_pred_probs_sorted, 1.0),
-                           precision_at_k(y_test_sorted, y_pred_probs_sorted, 2.0),
-                           precision_at_k(y_test_sorted, y_pred_probs_sorted, 5.0),
-                           precision_at_k(y_test_sorted, y_pred_probs_sorted, 10.0),
-                           precision_at_k(y_test_sorted, y_pred_probs_sorted, 20.0),
-                           precision_at_k(y_test_sorted, y_pred_probs_sorted, 30.0),
-                           precision_at_k(y_test_sorted, y_pred_probs_sorted, 50.0),
-                           recall_at_k(y_test_sorted, y_pred_probs_sorted, 1.0),
-                           recall_at_k(y_test_sorted, y_pred_probs_sorted, 2.0),
-                           recall_at_k(y_test_sorted, y_pred_probs_sorted, 5.0),
-                           recall_at_k(y_test_sorted, y_pred_probs_sorted, 10.0),
-                           recall_at_k(y_test_sorted, y_pred_probs_sorted, 20.0),
-                           recall_at_k(y_test_sorted, y_pred_probs_sorted, 30.0),
-                           recall_at_k(y_test_sorted, y_pred_probs_sorted, 50.0),
-                           roc_auc_score(y_test, y_pred_probs)]
-                    results_df.loc[len(results_df)] = row
-                    #print(row)
-                except IndexError as e:
-                    print('Error:',e)
-                    continue
     return results_df
 
 
-def temporal_validation(df, date_col, prediction_windows, start_time, end_time):
+def temporal_validation(df, date_col, prediction_windows, gap, start_time, end_time):
     '''
     Create a dictionary that maps a key that is the validation date with a list
     of train set and test set that correspond to that validation date.
@@ -170,8 +192,13 @@ def temporal_validation(df, date_col, prediction_windows, start_time, end_time):
         - df: a dataframe
         - date_col: the date column
         - prediction_windows: a list that contains all prediction windows in months
+        - gap: the number of days between train and start 
         - start_time: string, earliest datetime in the data
         - end_time: string, latest datetime in the data
+
+    Outputs:
+        a dictionary that maps the validation date to a list that contains the
+        corresponding train set and test set for that date
     '''
     start_time_date = datetime.strptime(start_time, '%Y-%m-%d')
     end_time_date = datetime.strptime(end_time, '%Y-%m-%d')
@@ -181,7 +208,8 @@ def temporal_validation(df, date_col, prediction_windows, start_time, end_time):
         test_end_time = end_time_date
         while test_end_time >= start_time_date + relativedelta(months=prediction_window):
             test_start_time = test_end_time - relativedelta(months=prediction_window)
-            train_end_time = test_start_time - relativedelta(days=1)
+            #leaving a gap between the train set and the test set
+            train_end_time = test_start_time - relativedelta(days=gap)
             train_set = df[(df[date_col] >= train_start_time) &
                            (df[date_col] <= train_end_time)]
             test_set = df[(df[date_col] >= test_start_time) &

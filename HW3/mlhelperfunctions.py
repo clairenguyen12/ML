@@ -162,11 +162,6 @@ def define_clfs_params(grid_size):
 # Evaluation functions
 # calculate precision, recall and auc metrics
 
-def baseline(X_train, X_test, y_train, y_test):
-    '''
-    '''
-
-
 
 def precision_at_k(y_true, y_scores, k):
     '''
