@@ -97,9 +97,9 @@ def define_clfs_params(grid_size):
            'max_depth': [1,5,10,20,50,100], 
            'max_features': [None,'sqrt','log2'],
            'min_samples_split': [2,5,10]},
-    'KNN': {'n_neighbors': [1,5,10,25,50,100],
-            'weights': ['uniform','distance'],
-            'algorithm': ['auto','ball_tree','kd_tree']}
+    'KNN': {'n_neighbors': [5,10],
+            'weights': ['uniform'],
+            'algorithm': ['auto']}
            }
     
     test_grid = { 

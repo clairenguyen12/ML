@@ -148,7 +148,7 @@ def clf_loop_cross_validation(models_to_run, clfs, grid, processed_rv,
     Returns:
         - a dataframe of results
     '''
-    metrics = ['p1_at_', 'recall_at_', 'f1_at_']
+    metrics = ['p_at_', 'recall_at_', 'f1_at_']
     metric_cols = []
     for thres in thresholds:
         for metric in metrics:
