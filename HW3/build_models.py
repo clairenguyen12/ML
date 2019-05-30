@@ -185,7 +185,7 @@ def temporal_validation(df, date_col, prediction_windows, gap, start_time, end_t
         - df: a dataframe
         - date_col: the date column
         - prediction_windows: a list that contains all prediction windows in months
-        - gap: the number of days between train and start 
+        - gap: the number of days between train end date and test start date 
         - start_time: string, earliest datetime in the data
         - end_time: string, latest datetime in the data
 
