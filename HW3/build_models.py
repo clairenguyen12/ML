@@ -28,7 +28,7 @@ from sklearn.metrics import roc_auc_score
 from datetime import date, datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
-from mlhelperfunctions import *
+from mlhelper import *
 
 
 RANDOM_STATE = 100
@@ -109,18 +109,21 @@ def process_train_data(rv, cols_to_discretize, num_bins, labels, cols_to_binary)
 
 
 def clf_loop_cross_validation(models_to_run, clfs, grid, processed_rv, 
-                              predictors, outcome, test_size=0.2):
+                              predictors, outcome, thresholds, test_size=0.2,
+                              target=0.05):
     '''
     '''
-    results_df =  pd.DataFrame(columns=('model_type', 'clf', 'parameters', 'split_date', 
-                                        'baseline',
-                                        'p_at_1', 'p_at_2', 'p_at_5',
-                                        'p_at_10', 'p_at_20', 'p_at_30', 'p_at_50',
-                                        'recall_at_1', 'recall_at_2', 'recall_at_5',
-                                        'recall_at_10', 'recall_at_20', 'recall_at_30', 'recall_at_50',
-                                        'f1_at_5', 'f1_at_20', 'f1_at_50',
-                                        'auc-roc', 'target_threshold_top_5_percent', 
-                                        'precision_at_target', 'recall_at_target', 'f1_at_target'))
+    metrics = ['p1_at_', 'recall_at_', 'f1_at_']
+    metric_cols = []
+    for thres in thresholds:
+        for metric in metrics:
+            metric_cols.append(metric + str(thres))
+    COLS = ['model_type', 'clf', 'parameters', 'split_date', 'baseline'] + \
+           metric_cols + \
+           ['auc-roc', 'target_threshold_top_5_percent', 'precision_at_target', 
+           'recall_at_target', 'f1_at_target']
+    
+    results_df =  pd.DataFrame(columns=COLS)
     i = 0
     for n in range(1, 2):
         for split_date, data in processed_rv.items():
@@ -143,36 +146,26 @@ def clf_loop_cross_validation(models_to_run, clfs, grid, processed_rv,
                         else:
                             y_pred_probs = clf.predict_proba(X_test)[:,1]                        
                         y_pred_probs_sorted, y_test_sorted = zip(*sorted(zip(y_pred_probs, y_test), reverse=True))
-                        target_index = int(0.05*len(y_pred_probs_sorted))
+                        target_index = int(target*len(y_pred_probs_sorted))
                         target_threshold = y_pred_probs_sorted[target_index]
-                        row = [models_to_run[index], clf, p, split_date,
-                               precision_at_k(y_test_sorted, y_pred_probs_sorted, 100.0),
-                               precision_at_k(y_test_sorted, y_pred_probs_sorted, 1.0),
-                               precision_at_k(y_test_sorted, y_pred_probs_sorted, 2.0),
-                               precision_at_k(y_test_sorted, y_pred_probs_sorted, 5.0),
-                               precision_at_k(y_test_sorted, y_pred_probs_sorted, 10.0),
-                               precision_at_k(y_test_sorted, y_pred_probs_sorted, 20.0),
-                               precision_at_k(y_test_sorted, y_pred_probs_sorted, 30.0),
-                               precision_at_k(y_test_sorted, y_pred_probs_sorted, 50.0),
-                               recall_at_k(y_test_sorted, y_pred_probs_sorted, 1.0),
-                               recall_at_k(y_test_sorted, y_pred_probs_sorted, 2.0),
-                               recall_at_k(y_test_sorted, y_pred_probs_sorted, 5.0),
-                               recall_at_k(y_test_sorted, y_pred_probs_sorted, 10.0),
-                               recall_at_k(y_test_sorted, y_pred_probs_sorted, 20.0),
-                               recall_at_k(y_test_sorted, y_pred_probs_sorted, 30.0),
-                               recall_at_k(y_test_sorted, y_pred_probs_sorted, 50.0),
-                               f1_at_k(y_test_sorted, y_pred_probs_sorted, 5.0),
-                               f1_at_k(y_test_sorted, y_pred_probs_sorted, 20.0),
-                               f1_at_k(y_test_sorted, y_pred_probs_sorted, 50.0),
-                               roc_auc_score(y_test, y_pred_probs),
+
+                        metrics_stats = []
+                        for thres in thresholds:
+                            pres = precision_at_k(y_test_sorted, y_pred_probs_sorted, thres)
+                            rec = recall_at_k(y_test_sorted, y_pred_probs_sorted, thres)
+                            f1 = f1_at_k(y_test_sorted, y_pred_probs_sorted, thres)
+                            metrics_stats.extend([pres, rec, f1])
+
+                        row = [models_to_run[index], clf, p, split_date] + \
+                              [precision_at_k(y_test_sorted, y_pred_probs_sorted, 100)] + \
+                              metrics_stats + \
+                              [roc_auc_score(y_test, y_pred_probs),
                                target_threshold,
                                precision_at_k(y_test_sorted, y_pred_probs_sorted, target_threshold),
                                recall_at_k(y_test_sorted, y_pred_probs_sorted, target_threshold),
-                               f1_at_k(y_test_sorted, y_pred_probs_sorted, target_threshold) 
-                               ]
+                               f1_at_k(y_test_sorted, y_pred_probs_sorted, target_threshold)]
                         results_df.loc[len(results_df)] = row
                         i +=1
-                        print("Added row {}".format(i))
                         #Plot the precision recall curves
                         plot_precision_recall_n(y_test, y_pred_probs, clf)
                     except IndexError as e:
