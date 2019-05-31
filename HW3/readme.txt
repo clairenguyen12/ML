@@ -1,13 +1,15 @@
 Machine Learning Pipeline
 Author: Chi Nguyen
 
+Apply the machine learning pipeline to predict whether a project listed in Donors Choose will fail to receive fundings within 60 days of posting
 
-The Pipeline contains 3 files:
-	- preprocess.py contains functions to load, clean data, 
-	create boxplots and histograms. It also contains functions
-	to convert continuous variables to categorical, and categorical
-	variables to binary.
-	- mlhelperfunctions.py contains helper functions that will be
+I performed analysis and predictive modeling using Python pandas and scik-itlearn on a Donors Choose dataset, including school location, school type, teacher program, project topic, number of students reached and requested funding amount.
+
+I trained multiple classifiers (Decision Trees, Bagging, Boosting, Random Forest, Logistic Regression, Support Vector Machine, K-nn Neighbors) each tuned to a different set of parameters, and evaluated them based on performance metrics such as precision, recall, f1, auc-roc to choose the best model.
+
+
+The Pipeline contains 2 files:
+	- mlhelper.py contains helper functions that will be
 	used to calculate evaluation metrics (baseline, precision, recall, f1).
 	It also contains the classifiers (Logistic Regression, K-Nearest Neighbor, 
 	Decision Trees, SVM, Random Forests, Boosting, and Baggingand) 
