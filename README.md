@@ -7,6 +7,7 @@ Machine Learning Pipeline - Spring 2019
 
 
 **Goal**
+
 Create a machine learning pipeline with functions that do the following tasks:
 1) Load data
 2) Explore data
@@ -17,6 +18,7 @@ Create a machine learning pipeline with functions that do the following tasks:
 
 
 **Application**
+
 Apply the machine learning pipeline to predict whether a project listed in Donors Choose will fail to receive fundings within 60 days of posting
 
 I performed analysis and predictive modeling using Python pandas and scik-itlearn on a Donors Choose dataset, including school location, school type, teacher program, project topic, number of students reached and requested funding amount.
